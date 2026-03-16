@@ -2,6 +2,7 @@ import userModel from "../models/user.model.js";
 import { sendEmail } from "../services/mail.service.js";
 import jwt from "jsonwebtoken";
 
+//  /api/auth/register => POST
 // register => check user existance => create user => email verification token generate => send verification email => send response
 export async function register(req, res) {
   const { username, email, password } = req.body;
@@ -52,6 +53,8 @@ export async function register(req, res) {
     },
   });
 }
+
+// /api/auth/verify-email => GET
 // verify email => token verification => user find => check if already verified => if not verified then verify and send response
 export async function verifyEmail(req, res) {
   const { token } = req.query;
@@ -97,6 +100,7 @@ export async function verifyEmail(req, res) {
   }
 }
 
+// /api/auth/login => POST
 // login => check email or username => password compare => email verification check => token generate => send response
 export async function login(req, res) {
   const { username, email, password } = req.body;
@@ -157,6 +161,8 @@ export async function login(req, res) {
   });
 }
 
+// /api/auth/get-me => GET
+// get me => user find by id from token => send response
 export async function getMe(req, res) {
   const userId = req.user.id;
   const user = await userModel.findById(userId);
