@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, Navigate, useNavigate } from 'react-router'
 import { useAuth } from '../hooks/useAuth'
+import { useSelector } from 'react-redux'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const { handleLogin } = useAuth()
-
+const {user,loading} = useSelector(state => state.auth)
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -21,6 +22,11 @@ const Login = () => {
 
     }
   }
+
+if(!loading && user){
+ return <Navigate to='/' replace />
+}
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-cyan-950 to-blue-950 p-5">
