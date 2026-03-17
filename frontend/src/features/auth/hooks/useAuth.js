@@ -25,6 +25,7 @@ export const useAuth = () => {
       dispatch(setUser(data.user));
     } catch (error) {
       dispatch(setError(error.response?.data?.message || "Login failed"));
+      throw error;
     } finally {
       dispatch(setLoading(false));
     }

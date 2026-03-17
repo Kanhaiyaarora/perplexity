@@ -8,11 +8,18 @@ const Login = () => {
   const { handleLogin } = useAuth()
 
   const navigate = useNavigate()
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const payload = { email, password }
-    await handleLogin(payload)
-    navigate('/')
+
+    try {
+      const payload = { email, password }
+      await handleLogin(payload)
+      navigate('/')
+    } catch (error) {
+      console.log("Login Failed - ", error);
+
+    }
   }
 
   return (
