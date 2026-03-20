@@ -3,6 +3,7 @@ import AuthRouter from "./routes/auth.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import morgan from "morgan";
+import chatRouter from "./routes/chat.routes.js";
 
 const app = express();
 
@@ -18,12 +19,17 @@ app.use(
   }),
 );
 
+// Logger
 app.use(morgan("dev"));
+
 // Health check
 app.get("/", (req, res) => {
   res.json({ message: "Server is running" });
 });
 
+// Routers
 app.use("/api/auth", AuthRouter);
+app.use("/api/chats", chatRouter)
+
 
 export default app;
