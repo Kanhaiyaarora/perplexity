@@ -6,15 +6,12 @@ import { useChat } from '../hooks/useChat'
 
 const Dashboard = () => {
   const { user } = useSelector(state => state.auth)
-  console.log("user " + user);
-  const { initializedSocketConnection, handleSendMessage } = useChat();
+  const { initializedSocketConnection, handleSendMessage, handleGetChats, handleOpenChat } = useChat();
 
   const [theme, setTheme] = useState('light');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const chats = useSelector((state) => state.chat.chats);
   const currentChatId = useSelector((state) => state.chat.currentChatId);
-  console.log("chats " + chats);
-  console.log("currentChatId " + currentChatId);
 
 
   const [input, setInput] = useState('');
@@ -24,15 +21,14 @@ const Dashboard = () => {
   const textareaRef = useRef(null);
 
   const currentChat = chats[currentChatId];
-  console.log("currentChat: " + currentChat);
 
   const messages = currentChat ? currentChat.messages : [];
-  console.log("messages: " + messages);
 
 
   // Socket.io
   useEffect(() => {
     initializedSocketConnection()
+    handleGetChats()
   }, [])
 
 
@@ -99,6 +95,7 @@ const Dashboard = () => {
   // Switch chat - simplified since we can only use hook layer
   const switchChat = (chatId) => {
     // For now, just update local state - ideally this should be in the hook
+    handleOpenChat(chatId)
     setStreamingMessage('');
     setIsTyping(false);
   };
