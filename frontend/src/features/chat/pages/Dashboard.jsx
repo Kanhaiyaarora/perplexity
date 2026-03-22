@@ -1,29 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Send, Plus, Trash2, Moon, Sun, LogOut, User, Menu, X, Brain, MessageCircle } from 'lucide-react';
 import { useSelector } from 'react-redux'
 import { useChat } from '../hooks/useChat'
 
 const Dashboard = () => {
   const { user } = useSelector(state => state.auth)
-  console.log(user);
-  const { initializedSocketConnection } = useChat();
+  console.log("user " + user);
+  const { initializedSocketConnection, handleSendMessage } = useChat();
 
   const [theme, setTheme] = useState('light');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [chats, setChats] = useState([
-    { id: 1, title: 'React Best Practices', messages: [] },
-    { id: 2, title: 'Web Development Tips', messages: [] },
-    { id: 3, title: 'JavaScript Async/Await', messages: [] },
-  ]);
-  const [currentChatId, setCurrentChatId] = useState(1);
+  const chats = useSelector((state) => state.chat.chats);
+  const currentChatId = useSelector((state) => state.chat.currentChatId);
+  console.log("chats " + chats);
+  console.log("currentChatId " + currentChatId);
+
+
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  const currentChat = chats.find(chat => chat.id === currentChatId);
+  const currentChat = chats[currentChatId];
+  console.log("currentChat: " + currentChat);
+
   const messages = currentChat ? currentChat.messages : [];
+  console.log("messages: " + messages);
+
 
   // Socket.io
   useEffect(() => {
@@ -52,40 +57,18 @@ const Dashboard = () => {
   }, [messages, streamingMessage]);
 
   // Send message
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim()) return;
-    const userMessage = { id: Date.now(), text: input, sender: 'user' };
-    const updatedChats = chats.map(chat =>
-      chat.id === currentChatId
-        ? { ...chat, messages: [...chat.messages, userMessage] }
-        : chat
-    );
-    setChats(updatedChats);
+    const message = input.trim();
     setInput('');
     setIsTyping(true);
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      await handleSendMessage({ message, chatId: currentChatId });
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
       setIsTyping(false);
-      const aiResponse = "This is a simulated AI response. It will appear word by word to demonstrate streaming.";
-      const words = aiResponse.split(' ');
-      let index = 0;
-      const interval = setInterval(() => {
-        if (index < words.length) {
-          setStreamingMessage(prev => prev + (prev ? ' ' : '') + words[index]);
-          index++;
-        } else {
-          clearInterval(interval);
-          const aiMessage = { id: Date.now() + 1, text: streamingMessage, sender: 'ai' };
-          const finalChats = chats.map(chat =>
-            chat.id === currentChatId
-              ? { ...chat, messages: [...chat.messages, userMessage, aiMessage] }
-              : chat
-          );
-          setChats(finalChats);
-          setStreamingMessage('');
-        }
-      }, 100);
-    }, 1000);
+    }
   };
 
   // Handle input change with auto-expand
@@ -105,34 +88,26 @@ const Dashboard = () => {
     }
   };
 
-  // New chat
+  // New chat - simplified since we can only use hook layer
   const newChat = () => {
-    const newChatId = Date.now();
-    const newChat = { id: newChatId, title: `Chat ${chats.length + 1}`, messages: [] };
-    setChats(prev => [...prev, newChat]);
-    setCurrentChatId(newChatId);
+    // For now, just clear the current chat selection
+    // The hook will create a new chat when sending the first message
     setStreamingMessage('');
     setIsTyping(false);
   };
 
-  // Switch chat
+  // Switch chat - simplified since we can only use hook layer
   const switchChat = (chatId) => {
-    setCurrentChatId(chatId);
+    // For now, just update local state - ideally this should be in the hook
     setStreamingMessage('');
     setIsTyping(false);
   };
 
-  // Delete chat
+  // Delete chat - simplified since we can only use hook layer
   const deleteChat = (chatId) => {
-    const updatedChats = chats.filter(chat => chat.id !== chatId);
-    setChats(updatedChats);
-    if (chatId === currentChatId) {
-      if (updatedChats.length > 0) {
-        setCurrentChatId(updatedChats[0].id);
-      } else {
-        newChat();
-      }
-    }
+    // For now, just switch to another chat if available
+    setStreamingMessage('');
+    setIsTyping(false);
   };
 
   return (
@@ -188,13 +163,13 @@ const Dashboard = () => {
 
           {/* Chat History */}
           <div className="flex-1 overflow-y-auto scrollbar-hide px-3 py-4 space-y-2">
-            {chats.length === 0 ? (
+            {Object.keys(chats).length === 0 ? (
               <div className="text-center py-8">
                 <MessageCircle className={`w-8 h-8 mx-auto mb-2 ${theme === 'dark' ? 'text-gray-700' : 'text-gray-300'}`} />
                 <p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>No chats yet</p>
               </div>
             ) : (
-              chats.map(chat => (
+              Object.values(chats).map(chat => (
                 <div
                   key={chat.id}
                   className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${chat.id === currentChatId ? (theme === 'dark' ? 'chat-item-active bg-gray-800 border border-purple-500/30' : 'chat-item-active bg-blue-50/50 border border-blue-200/50') : (theme === 'dark' ? 'hover:bg-gray-800' : 'hover:bg-gray-50')}`}
@@ -281,15 +256,19 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="p-6 space-y-4">
-                {messages.map(msg => (
-                  <div key={msg.id} className={`flex gap-3 animate-fade-in ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    {msg.sender === 'ai' && (
+                {messages.map((msg, index) => (
+                  <div key={index} className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {msg.role === 'ai' && (
                       <div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0 shadow-md">
                         <Brain className="w-4 h-4 text-white" />
                       </div>
                     )}
-                    <div className={`max-w-sm lg:max-w-md px-4 py-3 rounded-2xl transition-all duration-200 ${msg.sender === 'user' ? `bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-md` : theme === 'dark' ? 'bg-gray-800 text-gray-100 border border-gray-700' : 'bg-gray-100 text-gray-900 border border-gray-200'}`}>
-                      {msg.text}
+                    <div className={`max-w-sm lg:max-w-md px-4 py-3 rounded-2xl transition-all duration-200 ${msg.role === 'user' ? `bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-md` : theme === 'dark' ? 'bg-gray-800 text-gray-100 border border-gray-700' : 'bg-gray-100 text-gray-900 border border-gray-200'}`}>
+                      {msg.role === 'ai' ? (
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      ) : (
+                        msg.content
+                      )}
                     </div>
                   </div>
                 ))}
