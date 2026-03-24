@@ -6,6 +6,5 @@ export const webSearch = async ({ query }) => {
   const searchResults = await tavily.search(query, {
     maxResults: 5,
   });
-  console.log(JSON.stringify(searchResults));
   return JSON.stringify(searchResults);
 };
