@@ -95,7 +95,7 @@ const Dashboard = () => {
   // Switch chat - simplified since we can only use hook layer
   const switchChat = (chatId) => {
     // For now, just update local state - ideally this should be in the hook
-    handleOpenChat(chatId)
+    handleOpenChat(chatId, chats)
     setStreamingMessage('');
     setIsTyping(false);
   };
