@@ -9,4 +9,3 @@ export const initializedSocketConnection = () => {
     console.log("Connected to the Socket.io server");
   });
 };
-
