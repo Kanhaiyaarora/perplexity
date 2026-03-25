@@ -70,8 +70,8 @@ export const useChat = () => {
     dispatch(setLoading(false));
   };
 
+  // when user click on chat this hooks helps in open all the message of selected chat
   const handleOpenChat = async (chatId, chats) => {
-    console.log(chats[chatId]?.messages.length);
     if (chats[chatId]?.messages.length === 0) {
       const data = await getMessages({ chatId });
       const { messages } = data;

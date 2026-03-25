@@ -20,6 +20,8 @@ const mistralModel = new ChatMistralAI({
   apiKey: process.env.MISTRAL_API_KEY,
 });
 
+
+// this tools helps getting realtime data from the internet using tavily
 const webSearchTool = tool(webSearch, {
   name: "webSearch",
   description:
@@ -58,6 +60,8 @@ export const generateResponse = async (messages) => {
 
   return response.messages[response.messages.length - 1].text;
 };
+
+
 
 export const generateChatTitle = async (message) => {
   const response = await mistralModel.invoke([
